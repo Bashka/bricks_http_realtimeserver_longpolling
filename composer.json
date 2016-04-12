@@ -1,0 +1,24 @@
+{
+    "name": "bashka/bricks_http_realtimeserver_longpolling",
+    "version": "0.5",
+    "description": "Сервер с поддержкой long polling",
+    "license": "GNU-3.0",
+    "authors": [
+        {
+            "name": "Artur Sh. Mamedbekov",
+            "email": "Artur-Mamedbekov@yandex.ru"
+        }
+    ],
+    "require": {
+      "php": ">=5.5.0"
+    },
+    "autoload": {
+      "classmap": [
+        "Event.php",
+        "Server.php",
+        "Store/Store.php",
+        "Store/ArrayStore.php",
+        "Store/FileStore.php"
+      ]
+    }
+}
