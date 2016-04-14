@@ -20,8 +20,9 @@ class Event{
 	/**
 	 * @param int $birthday Временная метка возникновения события.
 	 */
-	public function __construct($birthday){
+	public function __construct($birthday, $data = null){
 		$this->birthday = $birthday;
+		$this->setData($data);
 	}
 
 	/**

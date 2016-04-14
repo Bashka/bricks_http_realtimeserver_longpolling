@@ -16,14 +16,11 @@ class ArrayStoreTest extends \PHPUnit_Framework_TestCase{
 
 	public function setUp(){
 		$this->store = new ArrayStore;
-		$events = [];
-		$events[0] = new Event(1);
-		$events[0]->setData(1);
-		$events[1] = new Event(3);
-		$events[1]->setData(3);
-		$events[2] = new Event(5);
-		$events[2]->setData(5);
-		$this->store->init($events);
+		$this->store->init([
+			new Event(1, 1),
+			new Event(3, 3),
+			new Event(5, 5),
+		]);
   }
 
 	public function testGet(){
@@ -53,10 +50,9 @@ class ArrayStoreTest extends \PHPUnit_Framework_TestCase{
 
 	public function testInit(){
 		$this->store = new ArrayStore;
-		$events = [];
-		$events[0] = new Event(2);
-		$events[0]->setData(2);
-		$this->store->init($events);
+		$this->store->init([
+			new Event(2, 2)
+		]);
 
 		$events = $this->store->get(1);
 		$this->assertEquals(2, $events[0]->getBirthday());
@@ -64,9 +60,7 @@ class ArrayStoreTest extends \PHPUnit_Framework_TestCase{
 	}
 
 	public function testPush(){
-		$event = new Event(7);
-		$event->setData('7');
-		$this->store->push($event);
+		$this->store->push(new Event(7, '7'));
 
 		$events = $this->store->get(5);
 		$this->assertEquals(7, $events[0]->getBirthday());

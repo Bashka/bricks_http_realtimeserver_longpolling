@@ -17,15 +17,12 @@ class FileStoreTest extends \PHPUnit_Framework_TestCase{
 
 	public static function setUpBeforeClass(){
 		$file = fopen(__DIR__ . '/filestore/store.txt', 'a');
-		$events = [];
-		$events[0] = new Event(1);
-		$events[0]->setData(1);
-		$events[1] = new Event(3);
-		$events[1]->setData(3);
-		$events[2] = new Event(5);
-		$events[2]->setData(5);
 
-		fwrite($file, serialize($events));
+		fwrite($file, serialize([
+			new Event(1, 1),
+			new Event(3, 3),
+			new Event(5, 5),
+		]));
 		fclose($file);
 	}
 
@@ -69,15 +66,12 @@ class FileStoreTest extends \PHPUnit_Framework_TestCase{
 
 	public function testInit(){
 		$this->store = new FileStore(__DIR__ . '/filestore/not_exists_file.txt');
-		$events = [];
-		$events[0] = new Event(1);
-		$events[0]->setData(1);
-		$events[1] = new Event(3);
-		$events[1]->setData(3);
-		$events[2] = new Event(5);
-		$events[2]->setData(5);
 
-		$this->store->init($events);
+		$this->store->init([
+			new Event(1, 1),
+			new Event(3, 3),
+			new Event(5, 5),
+		]);
 
 		$this->assertTrue(file_exists(__DIR__ . '/filestore/not_exists_file.txt'));
 		$events = $this->store->get(1);
@@ -89,19 +83,14 @@ class FileStoreTest extends \PHPUnit_Framework_TestCase{
 
 	public function testPush(){
 		$this->store = new FileStore(__DIR__ . '/filestore/not_exists_file.txt');
-		$events = [];
-		$events[0] = new Event(1);
-		$events[0]->setData('1');
-		$events[1] = new Event(3);
-		$events[1]->setData('3');
-		$events[2] = new Event(5);
-		$events[2]->setData('5');
 
-		$this->store->init($events);
+		$this->store->init([
+			new Event(1, '1'),
+			new Event(3, '3'),
+			new Event(5, '5'),
+		]);
 
-		$event = new Event(7);
-		$event->setData('7');
-		$this->store->push($event);
+		$this->store->push(new Event(7, '7'));
 
 		$events = $this->store->get(5);
 		$this->assertEquals(7, $events[0]->getBirthday());

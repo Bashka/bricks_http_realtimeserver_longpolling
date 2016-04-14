@@ -15,6 +15,12 @@ class EventTest extends \PHPUnit_Framework_TestCase{
 		$this->event = new Event(1);
 	}
 
+	public function testConstructor(){
+		$this->event = new Event(1, 'test');
+		$this->assertEquals(1, $this->event->getBirthday());
+		$this->assertEquals('test', $this->event->getData());
+	}
+
 	public function testGetBirthday(){
 		$this->assertEquals(1, $this->event->getBirthday());
 	}

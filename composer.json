@@ -1,6 +1,6 @@
 {
     "name": "bashka/bricks_http_realtimeserver_longpolling",
-    "version": "0.5.1",
+    "version": "0.6",
     "description": "Сервер с поддержкой long polling",
     "license": "GNU-3.0",
     "authors": [
