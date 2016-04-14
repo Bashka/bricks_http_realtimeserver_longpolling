@@ -8,7 +8,7 @@
 ![Схема "ожидающих" запросов 
 пользователя](http://plantuml.com:80/plantuml/png/SqmkoIzIA2rEBUBY0f4AkdOAGAeCoB9IoCaiBadDqqWkBIfApIi9oSnDrUHABafDB4bLA0PgI-M2gWJf0V61Ml9Iox68fgUMe9e2aG2gI4vCpW2fIClCIu698ZiXhpGdXwe6kfO1zKJ7miq4oe7zZP211GDK6CaQ1Lk5Wlm23QX2JRsapAAIZ9J4IW00)
 
-Если к на указанную в параметре метода дату отсутствуют новые события, метод 
+Если на указанную в параметре метода дату отсутствуют новые события, метод 
 заблокирует запрос до появления таковых.
 
 Пример реализации сервера с поддержкой long polling:
@@ -17,7 +17,6 @@
 use Bricks\Http\RealtimeServer\LongPolling\Store\FileStore;
 use Bricks\Http\RealtimeServer\LongPolling\Server;
 
-$db = ...; // Адаптер базы данных.
 $store = new FileStore('storage/pl_store.txt');
 $server = new Server($store);
 $events = $server->listen($_GET['time']); // Возможна блокировка выполнения.

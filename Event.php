@@ -11,6 +11,7 @@ class Event{
 	 * @var int Временная метка возникновения события.
 	 */
 	private $birthday;
+
 	/**
 	 * @var mixed Данные события.
 	 */

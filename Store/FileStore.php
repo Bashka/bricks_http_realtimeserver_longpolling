@@ -17,6 +17,7 @@ class FileStore extends ArrayStore{
 	 * @param string $file Адрес файла, используемого в качестве хранилища.
 	 */
 	public function __construct($file){
+		parent::__construct();
 		$this->file = $file;
 	}
 
