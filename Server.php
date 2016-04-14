@@ -11,7 +11,7 @@ class Server{
 	/**
 	 * Время задержки между запросами к хранилищу, используемое по умолчанию.
 	 */
-	const DEFAULT_DELAY = 1;
+	const DEFAULT_DELAY = 2000000;
 
 	/**
 	 * @var Store Используемое хранилище.
@@ -34,7 +34,7 @@ class Server{
 	/**
 	 * Устанавливает время задержки между запросами к хранилищу.
 	 *
-	 * @param float $delay Время задержки в секундах.
+	 * @param int $delay Время задержки в микросекундах (1 секунда = 1000000).
 	 */
 	public function setDelay($delay){
 		$this->delay = $delay;
@@ -52,7 +52,7 @@ class Server{
 	 */
 	public function listen($time){
 		while(empty($data = $this->store->get($time))){
-			sleep($this->delay);
+			usleep($this->delay);
 		}
 
 		return $data;
