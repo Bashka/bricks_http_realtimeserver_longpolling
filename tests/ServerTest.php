@@ -23,10 +23,24 @@ class ServerTest extends \PHPUnit_Framework_TestCase{
 		$this->server = new Server($this->store);
 	}
 
+	public function testConstructor_shouldSetAttemptsLimitWithMaxExecutionTime(){
+		ini_set('max_execution_time', 3);
+		$this->server = new Server($this->store);
+		$this->assertEquals(3, $this->server->getAttemptsLimit());
+	}
+
 	public function testListen(){
 		$this->store->setHistory([[], [], ['test']]);
 		$this->server->setDelay(0.1);
+		$this->server->setAttemptsLimit(3);
 
 		$this->assertEquals(['test'], $this->server->listen(time()));
+	}
+
+	public function testListen_shouldDieIfAttemptsLimit(){
+		$this->store->setHistory([[], [], ['test']]);
+		$this->server->setDelay(0.1);
+		$this->server->setAttemptsLimit(2);
+		$this->assertEquals([], $this->server->listen(time()));
 	}
 }

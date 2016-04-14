@@ -11,7 +11,7 @@ class Server{
 	/**
 	 * Время задержки между запросами к хранилищу, используемое по умолчанию.
 	 */
-	const DEFAULT_DELAY = 2000000;
+	const DEFAULT_DELAY = 1000000;
 
 	/**
 	 * @var Store Используемое хранилище.
@@ -24,11 +24,17 @@ class Server{
 	private $delay;
 
 	/**
+	 * @var int Максимальное число попыток получения данных из хранилища.
+	 */
+	private $attemptsLimit;
+
+	/**
 	 * @param Store $store Используемое хранилище.
 	 */
 	public function __construct(Store $store){
 		$this->store = $store;
 		$this->setDelay(self::DEFAULT_DELAY);
+		$this->setAttemptsLimit((int) ((int) ini_get('max_execution_time') * 1000000 / $this->delay));
 	}
 
 	/**
@@ -38,6 +44,25 @@ class Server{
 	 */
 	public function setDelay($delay){
 		$this->delay = $delay;
+	}
+
+	/**
+	 * Устанавливает максимальное число попыток получения данных из хранилища.
+	 * Максимальное время работы сервера будет равно произведению этого числа на 
+	 * время задержки.
+	 *
+	 * @param int $attemptsLimit Максимальное число попыток получения данных из 
+	 * хранилища.
+	 */
+	public function setAttemptsLimit($attemptsLimit){
+		$this->attemptsLimit = $attemptsLimit;
+	}
+
+	/**
+	 * @return int Максимальное число попыток получния данных от хранилища.
+	 */
+	public function getAttemptsLimit(){
+		return $this->attemptsLimit;
 	}
 
 	/**
@@ -51,7 +76,11 @@ class Server{
 	 * @return Event[] Массив событий, актуальных для данной временной метки.
 	 */
 	public function listen($time){
+		$i = 0;
 		while(empty($data = $this->store->get($time))){
+			if(++$i == $this->attemptsLimit){
+				break;
+			}
 			usleep($this->delay);
 		}
 
