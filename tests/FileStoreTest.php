@@ -10,90 +10,131 @@ require_once('Event.php');
  * @author Artur Sh. Mamedbekov
  */
 class FileStoreTest extends \PHPUnit_Framework_TestCase{
-	/**
-	 * @var FileStore Тестируемый объект.
-	 */
-	private $store;
+	private function createFullStore(array $events){
+		assert('count($events) > 0');
 
-	public static function setUpBeforeClass(){
-		$file = fopen(__DIR__ . '/filestore/store.txt', 'a');
+		$file = fopen(__DIR__ . '/filestore/full_store.txt', 'a');
+		fwrite($file, serialize($events));
+		fclose($file);
 
-		fwrite($file, serialize([
+		return new FileStore(__DIR__ . '/filestore/full_store.txt');
+	}
+
+	private function createEmptyStore(){
+		return new FileStore(__DIR__ . '/filestore/empty_store.txt');
+	}
+
+	public function tearDown(){
+		if(file_exists(__DIR__ . '/filestore/full_store.txt')){
+			unlink(__DIR__ . '/filestore/full_store.txt');
+		}
+		if(file_exists(__DIR__ . '/filestore/empty_store.txt')){
+			unlink(__DIR__ . '/filestore/empty_store.txt');
+		}
+	}
+
+
+	public function testGet(){
+		$store = $this->createFullStore([
 			new Event(1, 1),
 			new Event(3, 3),
 			new Event(5, 5),
-		]));
-		fclose($file);
-	}
+		]);
 
-	public static function tearDownAfterClass(){
-		if(file_exists(__DIR__ . '/filestore/store.txt')){
-			unlink(__DIR__ . '/filestore/store.txt');
-		}
-		if(file_exists(__DIR__ . '/filestore/not_exists_file.txt')){
-			unlink(__DIR__ . '/filestore/not_exists_file.txt');
-		}
-	}
+		$allEvents = $store->get(0);
+		$partEvents = $store->get(1);
+		$notEvents = $store->get(6);
 
-	public function setUp(){
-		$this->store = new FileStore(__DIR__ . '/filestore/store.txt');
-	}
-
-	public function testGet(){
-		$events = $this->store->get(0);
-		$this->assertEquals(1, $events[0]->getBirthday());
-		$this->assertEquals('1', $events[0]->getData());
-		$this->assertEquals(3, $events[1]->getBirthday());
-		$this->assertEquals('3', $events[1]->getData());
-		$this->assertEquals(5, $events[2]->getBirthday());
-		$this->assertEquals('5', $events[2]->getData());
-
-		$events = $this->store->get(1);
-		$this->assertEquals(3, $events[0]->getBirthday());
-		$this->assertEquals('3', $events[0]->getData());
-		$this->assertEquals(5, $events[1]->getBirthday());
-		$this->assertEquals('5', $events[1]->getData());
-	}
-
-	public function testGet_shouldReturnEmptyArrayIfNewEventsNotFound(){
-		$this->assertEquals([], $this->store->get(6));
+		$this->assertEquals([
+			new Event(1, 1),
+			new Event(3, 3),
+			new Event(5, 5),
+		], $allEvents, 'Выбор при наличии только актуальных событий в хранилище');
+		$this->assertEquals([
+			new Event(3, 3),
+			new Event(5, 5),
+		], $partEvents, 'Выбор только актуальных событий в хранилище');
+		$this->assertEquals([
+		], $notEvents, 'Выбор при отсутствии актуальных событий в хранилище');
 	}
 
 	public function testGet_shouldReturnEmptyArrayIfFileNotExists(){
-		$this->store = new FileStore(__DIR__ . '/filestore/not_exists_file.txt');
-		$this->assertEquals([], $this->store->get(1));
+		$store = $this->createEmptyStore();
+
+		$events = $store->get(0);
+
+		$this->assertEquals([
+		], $events, 'Выбор при отсутствии событий в хранилище');
 	}
 
 	public function testInit(){
-		$this->store = new FileStore(__DIR__ . '/filestore/not_exists_file.txt');
+		$store = $this->createEmptyStore();
 
-		$this->store->init([
+		$store->init([
+			new Event(2, 2)
+		]);
+		$events = $store->get(0);
+
+		$this->assertTrue(file_exists(__DIR__ . '/filestore/empty_store.txt'), 'Создание файла хранилища при инициализации');
+		$this->assertEquals([
+			new Event(2, 2)
+		], $events, 'Инициализация хранилища');
+	}
+
+	public function testInit_shouldRewriteFileStore(){
+		$store = $this->createFullStore([
 			new Event(1, 1),
 			new Event(3, 3),
 			new Event(5, 5),
 		]);
 
-		$this->assertTrue(file_exists(__DIR__ . '/filestore/not_exists_file.txt'));
-		$events = $this->store->get(1);
-		$this->assertEquals(3, $events[0]->getBirthday());
-		$this->assertEquals('3', $events[0]->getData());
-		$this->assertEquals(5, $events[1]->getBirthday());
-		$this->assertEquals('5', $events[1]->getData());
+		$store->init([
+			new Event(2, 2)
+		]);
+		$events = $store->get(0);
+
+		$this->assertTrue(file_exists(__DIR__ . '/filestore/full_store.txt'), 'Перезапись файла хранилища при инициализации');
+		$this->assertEquals([
+			new Event(2, 2)
+		], $events, 'Переинициализация хранилища');
 	}
 
 	public function testPush(){
-		$this->store = new FileStore(__DIR__ . '/filestore/not_exists_file.txt');
-
-		$this->store->init([
-			new Event(1, '1'),
-			new Event(3, '3'),
-			new Event(5, '5'),
+		$store = $this->createFullStore([
+			new Event(1, 1),
 		]);
 
-		$this->store->push(new Event(7, '7'));
+		$store->push(new Event(2, 2));
+		$events = $store->get(1);
 
-		$events = $this->store->get(5);
-		$this->assertEquals(7, $events[0]->getBirthday());
-		$this->assertEquals('7', $events[0]->getData());
+		$this->assertEquals([
+			new Event(2, 2)
+		], $events, 'Добавление события в хранилище без необходимости сортировки');
+	}
+
+	public function testPush_shouldSortingStore(){
+		$store = $this->createFullStore([
+			new Event(1, 1),
+			new Event(3, 3),
+		]);
+
+		$store->push(new Event(2, 2));
+		$events = $store->get(1);
+
+		$this->assertEquals([
+			new Event(2, 2),
+			new Event(3, 3),
+		], $events, 'Добавление события в хранилище с необходимостью сортировки');
+	}
+
+	public function testPush_shouldPushIfStoreEmpty(){
+		$store = $this->createEmptyStore();
+
+		$store->push(new Event(1, 1));
+		$events = $store->get(0);
+
+		$this->assertEquals([
+			new Event(1, 1)
+		], $events, 'Добавление события в пустое хранилище');
 	}
 }

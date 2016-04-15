@@ -9,70 +9,105 @@ require_once('Event.php');
  * @author Artur Sh. Mamedbekov
  */
 class ArrayStoreTest extends \PHPUnit_Framework_TestCase{
-  /**
-	 * @var ArrayStore Тестируемый объект.
-	 */
-	private $store;
+	private function createFullStore(array $events){
+		assert('count($events) > 0');
 
-	public function setUp(){
-		$this->store = new ArrayStore;
-		$this->store->init([
+		$store = new ArrayStore;
+		$store->init($events);
+
+		return $store;
+	}
+
+	private function createEmptyStore(){
+		$store = new ArrayStore;
+		$store->init([]);
+
+		return $store;
+	}
+
+
+	public function testGet(){
+		$store = $this->createFullStore([
 			new Event(1, 1),
 			new Event(3, 3),
 			new Event(5, 5),
 		]);
-  }
 
-	public function testGet(){
-		$events = $this->store->get(0);
-		$this->assertEquals(1, $events[0]->getBirthday());
-		$this->assertEquals('1', $events[0]->getData());
-		$this->assertEquals(3, $events[1]->getBirthday());
-		$this->assertEquals('3', $events[1]->getData());
-		$this->assertEquals(5, $events[2]->getBirthday());
-		$this->assertEquals('5', $events[2]->getData());
+		$allEvents = $store->get(0);
+		$partEvents = $store->get(1);
+		$notEvents = $store->get(6);
 
-		$events = $this->store->get(1);
-		$this->assertEquals(3, $events[0]->getBirthday());
-		$this->assertEquals('3', $events[0]->getData());
-		$this->assertEquals(5, $events[1]->getBirthday());
-		$this->assertEquals('5', $events[1]->getData());
-	}
-
-	public function testGet_shouldReturnEmptyArrayIfNewEventsNotFound(){
-		$this->assertEquals([], $this->store->get(6));
+		$this->assertEquals([
+			new Event(1, 1),
+			new Event(3, 3),
+			new Event(5, 5),
+		], $allEvents, 'Выбор при наличии только актуальных событий в хранилище');
+		$this->assertEquals([
+			new Event(3, 3),
+			new Event(5, 5),
+		], $partEvents, 'Выбор только актуальных событий в хранилище');
+		$this->assertEquals([
+		], $notEvents, 'Выбор при отсутствии актуальных событий в хранилище');
 	}
 
 	public function testGet_shouldReturnEmptyArrayIfNotData(){
-		$this->store = new ArrayStore;
-		$this->assertEquals([], $this->store->get(0));
+		$store = $this->createEmptyStore();
+
+		$events = $store->get(0);
+
+		$this->assertEquals([
+		], $events, 'Выбор при отсутствии событий в хранилище');
 	}
 
 	public function testInit(){
-		$this->store = new ArrayStore;
-		$this->store->init([
+		$store = $this->createEmptyStore();
+
+		$store->init([
 			new Event(2, 2)
 		]);
+		$events = $store->get(0);
 
-		$events = $this->store->get(1);
-		$this->assertEquals(2, $events[0]->getBirthday());
-		$this->assertEquals('2', $events[0]->getData());
+		$this->assertEquals([
+			new Event(2, 2)
+		], $events, 'Инициализация хранилища');
 	}
 
 	public function testPush(){
-		$this->store->push(new Event(7, '7'));
+		$store = $this->createFullStore([
+			new Event(1, 1),
+		]);
 
-		$events = $this->store->get(5);
-		$this->assertEquals(7, $events[0]->getBirthday());
-		$this->assertEquals('7', $events[0]->getData());
+		$store->push(new Event(2, 2));
+		$events = $store->get(1);
+
+		$this->assertEquals([
+			new Event(2, 2)
+		], $events, 'Добавление события в хранилище без необходимости сортировки');
+	}
+
+	public function testPush_shouldSortingStore(){
+		$store = $this->createFullStore([
+			new Event(1, 1),
+			new Event(3, 3),
+		]);
+
+		$store->push(new Event(2, 2));
+		$events = $store->get(1);
+
+		$this->assertEquals([
+			new Event(2, 2),
+			new Event(3, 3),
+		], $events, 'Добавление события в хранилище с необходимостью сортировки');
 	}
 
 	public function testPush_shouldPushIfStoreEmpty(){
-		$this->store = new ArrayStore;
-		$this->store->push(new Event(7, '7'));
+		$store = $this->createEmptyStore();
 
-		$events = $this->store->get(5);
-		$this->assertEquals(7, $events[0]->getBirthday());
-		$this->assertEquals('7', $events[0]->getData());
+		$store->push(new Event(1, 1));
+		$events = $store->get(0);
+
+		$this->assertEquals([
+			new Event(1, 1)
+		], $events, 'Добавление события в пустое хранилище');
 	}
 }

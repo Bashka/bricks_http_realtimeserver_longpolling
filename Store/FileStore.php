@@ -25,7 +25,7 @@ class FileStore extends ArrayStore{
 	 * @see Bricks\Http\RealtimeServer\LongPolling\Store\Store::init
 	 */
 	public function init(array $events){
-		$resource = fopen($this->file, 'a');
+		$resource = fopen($this->file, 'w');
 		fwrite($resource, serialize($events));
 		fclose($resource);
 	}
@@ -50,8 +50,14 @@ class FileStore extends ArrayStore{
 	 * @see Bricks\Http\RealtimeServer\LongPolling\Store\Store::push
 	 */
 	public function push(Event $event){
-		$resource = fopen($this->file, 'r+');
-		parent::init(unserialize(fread($resource, filesize($this->file))));
+		if(file_exists($this->file)){
+			$resource = fopen($this->file, 'r+');
+			parent::init(unserialize(fread($resource, filesize($this->file))));
+		}
+		else{
+			$resource = fopen($this->file, 'w');
+			parent::init([]);
+		}
 
 		parent::push($event);
 		
