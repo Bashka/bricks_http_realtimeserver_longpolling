@@ -66,4 +66,13 @@ class ArrayStoreTest extends \PHPUnit_Framework_TestCase{
 		$this->assertEquals(7, $events[0]->getBirthday());
 		$this->assertEquals('7', $events[0]->getData());
 	}
+
+	public function testPush_shouldPushIfStoreEmpty(){
+		$this->store = new ArrayStore;
+		$this->store->push(new Event(7, '7'));
+
+		$events = $this->store->get(5);
+		$this->assertEquals(7, $events[0]->getBirthday());
+		$this->assertEquals('7', $events[0]->getData());
+	}
 }

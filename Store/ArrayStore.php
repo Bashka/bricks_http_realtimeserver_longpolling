@@ -53,9 +53,14 @@ class ArrayStore implements Store{
 	 */
 	public function push(Event $event){
 		$pos = count($this->store) - 1;
-		while($this->store[$pos]->getBirthday() > $event->getBirthday() && $pos != 0){
-			$pos--;
+		if($pos != -1){
+			while($this->store[$pos]->getBirthday() > $event->getBirthday() && $pos != 0){
+				$pos--;
+			}
+			$this->store = array_merge(array_slice($this->store, 0, $pos + 1), [$event], array_slice($this->store, $pos + 1));
 		}
-		$this->store = array_merge(array_slice($this->store, 0, $pos + 1), [$event], array_slice($this->store, $pos + 1));
+		else{
+			$this->store[] = $event;
+		}
 	}
 }

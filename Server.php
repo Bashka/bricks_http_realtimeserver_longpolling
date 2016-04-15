@@ -76,7 +76,7 @@ class Server{
 	 * @return Event[] Массив событий, актуальных для данной временной метки.
 	 */
 	public function listen($time){
-		$i = 0;
+		$i = 1;
 		while(empty($data = $this->store->get($time))){
 			if($i++ == $this->attemptsLimit){
 				break;
