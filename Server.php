@@ -78,7 +78,7 @@ class Server{
 	public function listen($time){
 		$i = 0;
 		while(empty($data = $this->store->get($time))){
-			if(++$i == $this->attemptsLimit){
+			if($i++ == $this->attemptsLimit){
 				break;
 			}
 			usleep($this->delay);
