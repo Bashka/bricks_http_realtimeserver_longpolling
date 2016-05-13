@@ -35,6 +35,22 @@ class ServerTest extends \PHPUnit_Framework_TestCase{
 		$this->assertEquals(['test'], $events, 'Ожидание актуальных событий');
 	}
 
+	public function testListen_withCallback(){
+		$server = new Server($this->createMockStore([[], [], ['test']]));
+		$server->setDelay(0.1);
+		$server->setAttemptsLimit(3);
+
+		$listener = $this->getMock('stdClass', ['listen']);
+		$listener->expects($this->at(0))
+			->method('listen');
+		$listener->expects($this->at(1))
+			->method('listen');
+
+		$events = $server->listen(time(), [$listener, 'listen']);
+
+		$this->assertEquals(['test'], $events, 'Ожидание актуальных событий');
+	}
+
 	public function testListen_shouldDieIfAttemptsLimit(){
 		$server = new Server($this->createMockStore([[], [], ['test']]));
 		$server->setDelay(0.1);

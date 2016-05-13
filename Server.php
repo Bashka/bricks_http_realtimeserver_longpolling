@@ -72,14 +72,20 @@ class Server{
 	 * @param int $time Временная метка, определяющая время актуальности данных.	
 	 * Все данные, созданные после данной метки считаются актуальными и будут 
 	 * включены в ответ.
+	 * @param callable|array $callback [optional] Функция или массив вида [объект, 
+	 * имя_метода], которая будет вызываться после каждого обращения к хранилищу с 
+	 * целью получения новых событий.
 	 *
 	 * @return Event[] Массив событий, актуальных для данной временной метки.
 	 */
-	public function listen($time){
+	public function listen($time, $callback = null){
 		$i = 1;
 		while(empty($data = $this->store->get($time))){
 			if($i++ == $this->attemptsLimit){
 				break;
+			}
+			if(!is_null($callback)){
+				call_user_func($callback);
 			}
 			usleep($this->delay);
 		}
